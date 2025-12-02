@@ -24,6 +24,8 @@ FontStashSharp is the text rendering library.
 
 [Using FontStashSharp in any C# engine](https://github.com/rds1983/FontStashSharp/wiki/Using-FontStashSharp-in-generic-game-engine)
 
+[HarfBuzz Text Shaping](https://github.com/FontStashSharp/FontStashSharp/wiki/HarfBuzz-Text-Shaping)
+
 ## Support
 [Discord](https://discord.gg/ZeHxhCY)
 
@@ -57,3 +59,4 @@ Stroked Text:
 * [FreeTypeSharp](https://github.com/ryancheung/FreeTypeSharp)
 * [SixLabors.Fonts](https://github.com/SixLabors/Fonts)
 * [TrippyGL](https://github.com/SilkCommunity/TrippyGL)
+* [HarfBuzzSharp](https://www.nuget.org/packages/HarfBuzzSharp/)
