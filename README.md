@@ -3,7 +3,7 @@
 [![Build & Publish Beta](https://github.com/FontStashSharp/FontStashSharp/actions/workflows/build-and-publish-beta.yml/badge.svg)](https://github.com/FontStashSharp/FontStashSharp/actions/workflows/build-and-publish-beta.yml)
 [![Chat](https://img.shields.io/discord/628186029488340992.svg)](https://discord.gg/ZeHxhCY)
 
-FontStashSharp is the text rendering library. It has following features:
+FontStashSharp is a text rendering library. It has the following features:
 * Many supported frameworks: MonoGame, FNA, Stride, Kni, Xna and generic C# engines
 * Runtime font loading from ttfs and AngelCode BMFonts
 * Text effects: blurry text, stroked text, underline and strikethrough
@@ -21,11 +21,14 @@ https://fontstashsharp.github.io/FontStashSharp
 2. Open a solution from the "build" folder.
 
 ## Sponsor
-https://www.patreon.com/rds1983
+If this project is useful for you, you can support development:
+- Boosty: https://boosty.to/rds1983
+- Telegram Wallet: https://t.me/rds1983
 
-https://boosty.to/rds1983
+### Crypto
+USDT (TON): `UQCQy6tFInPvqinE44zHY4R0rYS3niaBikkqiSyGmyoAMwyO`
 
-bitcoin: 3GeKFcv8X1cn8WqH1mr8i7jgPBkQjQuyN1
+TON: `UQCQy6tFInPvqinE44zHY4R0rYS3niaBikkqiSyGmyoAMwyO`
 
 # Screenshots
 Ordinary Text:
@@ -46,6 +49,5 @@ Stroked Text:
 * [Stride](https://www.stride3d.net/)
 * [Kni](https://github.com/kniEngine/kni)
 * [FreeTypeSharp](https://github.com/ryancheung/FreeTypeSharp)
-* [SixLabors.Fonts](https://github.com/SixLabors/Fonts)
 * [TrippyGL](https://github.com/SilkCommunity/TrippyGL)
 * [HarfBuzzSharp](https://www.nuget.org/packages/HarfBuzzSharp/)

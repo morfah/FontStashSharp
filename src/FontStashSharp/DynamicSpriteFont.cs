@@ -14,6 +14,10 @@ using System.Numerics;
 
 namespace FontStashSharp
 {
+	/// <summary>
+	/// A sprite font that dynamically renders and caches glyphs on-demand into texture atlases.
+	/// Supports multiple font sources, glyph effects, and text shaping.
+	/// </summary>
 	public partial class DynamicSpriteFont : SpriteFontBase
 	{
 		private class GlyphStorage
@@ -29,8 +33,17 @@ namespace FontStashSharp
 		private readonly Int32Map<int> Kernings = new Int32Map<int>();
 		private FontMetrics[] IndexedMetrics;
 
+		/// <summary>
+		/// Gets the font system that manages this dynamic sprite font.
+		/// </summary>
 		public FontSystem FontSystem { get; private set; }
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="DynamicSpriteFont"/> class.
+		/// </summary>
+		/// <param name="system">The font system managing this font. Cannot be null.</param>
+		/// <param name="size">The font size in points.</param>
+		/// <param name="lineHeight">The line height in pixels.</param>
 		internal DynamicSpriteFont(FontSystem system, float size, int lineHeight) : base(size, lineHeight)
 		{
 			if (system == null)
@@ -164,8 +177,24 @@ namespace FontStashSharp
 		}
 
 #if MONOGAME || FNA || XNA || STRIDE
+		/// <summary>
+		/// Gets a glyph for the specified codepoint with optional effects applied.
+		/// </summary>
+		/// <param name="device">The graphics device</param>
+		/// <param name="codepoint">The Unicode codepoint for the character</param>
+		/// <param name="effect">The font system effect to apply</param>
+		/// <param name="effectAmount">The amount of the effect to apply</param>
+		/// <returns>The font glyph for the specified codepoint</returns>
 		protected internal override FontGlyph GetGlyph(GraphicsDevice device, int codepoint, FontSystemEffect effect, int effectAmount)
 #else
+		/// <summary>
+		/// Gets a glyph for the specified codepoint with optional effects applied.
+		/// </summary>
+		/// <param name="device">The texture manager</param>
+		/// <param name="codepoint">The Unicode codepoint for the character</param>
+		/// <param name="effect">The font system effect to apply</param>
+		/// <param name="effectAmount">The amount of the effect to apply</param>
+		/// <returns>The font glyph for the specified codepoint</returns>
 		protected internal override FontGlyph GetGlyph(ITexture2DManager device, int codepoint, FontSystemEffect effect, int effectAmount)
 #endif
 		{
