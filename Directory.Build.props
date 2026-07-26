@@ -9,7 +9,7 @@
     <FontStashSharpBaseVersion>1.2.3</FontStashSharpBaseVersion>
     <StbImageSharpVersion>2.30.15</StbImageSharpVersion>
     <CyotekDrawingBitmapFontVersion>2.0.4</CyotekDrawingBitmapFontVersion>
-    <MonoGameVersion>3.8.0.1641</MonoGameVersion>
+    <MonoGameVersion>3.8.5</MonoGameVersion>
     <AppMonoGameVersion>3.8.4.1</AppMonoGameVersion>
     <StrideVersion>4.2.0.2067</StrideVersion>
     <AppTargetFramework>net10.0</AppTargetFramework>
