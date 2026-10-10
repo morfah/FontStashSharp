@@ -1,4 +1,4 @@
-﻿#if MONOGAME || FNA || XNA
+﻿#if MONOGAME || FNA || KNI || XNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 #elif STRIDE
@@ -20,30 +20,41 @@ namespace FontStashSharp
 		/// The Unicode codepoint of the character.
 		/// </summary>
 		public int Codepoint;
+
 		/// <summary>
 		/// A unique identifier for this glyph.
 		/// </summary>
 		public int Id;
+
 		/// <summary>
 		/// The horizontal advance width in pixels.
 		/// </summary>
 		public int XAdvance;
+
 		/// <summary>
 		/// The texture containing the glyph image.
 		/// </summary>
 		public Texture2D Texture;
+
 		/// <summary>
 		/// The offset from the baseline for rendering the glyph.
 		/// </summary>
 		public Point RenderOffset;
+
 		/// <summary>
 		/// The position of the glyph within the texture.
 		/// </summary>
 		public Point TextureOffset;
+
 		/// <summary>
 		/// The width and height of the glyph in pixels.
 		/// </summary>
 		public Point Size;
+
+		/// <summary>
+		/// The mode used to rasterize this glyph.
+		/// </summary>
+		public FontRasterizationMode FontRasterizationMode = FontRasterizationMode.Standard;
 
 		/// <summary>
 		/// Gets a value indicating whether this glyph has no visible content.
@@ -55,6 +66,11 @@ namespace FontStashSharp
 				return Size.X == 0 || Size.Y == 0;
 			}
 		}
+
+		/// <summary>
+		/// Gets or sets the amount of padding around the glyph used to accommodate SDF effects.
+		/// </summary>
+		public int SDFPadding { get; set; }
 
 		/// <summary>
 		/// Gets the rectangular region within the texture containing this glyph.
@@ -75,14 +91,17 @@ namespace FontStashSharp
 		/// The font size at which this glyph was rendered.
 		/// </summary>
 		public float FontSize;
+
 		/// <summary>
 		/// The index of the font source used to render this glyph.
 		/// </summary>
 		public int FontSourceIndex;
+
 		/// <summary>
 		/// The effect applied to this glyph (None, Blurry, or Stroked).
 		/// </summary>
 		public FontSystemEffect Effect;
+
 		/// <summary>
 		/// The strength or intensity of the applied effect.
 		/// </summary>

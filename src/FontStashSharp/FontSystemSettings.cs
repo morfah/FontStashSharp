@@ -1,7 +1,7 @@
 ﻿using System;
 using FontStashSharp.Interfaces;
 
-#if MONOGAME || FNA || XNA
+#if MONOGAME || FNA || KNI || XNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 #elif STRIDE
@@ -62,7 +62,7 @@ namespace FontStashSharp
 	public class FontSystemSettings
 	{
 		private int _textureWidth = 1024, _textureHeight = 1024;
-		private float _fontResolutionFactor = 1.0f;
+		private float? _fontResolutionFactor = null;
 		private int _kernelWidth = 0, _kernelHeight = 0;
 		private int _shapedTextCacheSize = 100;
 
@@ -137,17 +137,16 @@ namespace FontStashSharp
 		public GlyphRenderer GlyphRenderer { get; set; } = GlyphRenderers.Default;
 
 		/// <summary>
-		/// Gets or sets the font resolution factor for scaling glyphs.
-		/// A value greater than 1.0 renders glyphs at higher resolution for better quality.
+		/// Gets or sets the resolution factor used to scale font glyphs.
 		/// </summary>
-		public float FontResolutionFactor
+		public float? FontResolutionFactor
 		{
 			get => _fontResolutionFactor;
 			set
 			{
-				if (value < 0)
+				if (value.HasValue && value < 1)
 				{
-					throw new ArgumentOutOfRangeException(nameof(value), value, "This cannot be smaller than 0");
+					throw new ArgumentOutOfRangeException(nameof(value), value, "This cannot be smaller than 1");
 				}
 
 				_fontResolutionFactor = value;
@@ -155,7 +154,7 @@ namespace FontStashSharp
 		}
 
 		/// <summary>
-		/// Gets or sets the kernel width for glyph effects (blur or stroke).
+		/// Gets or sets the width of the kernel used when applying glyph effects.
 		/// </summary>
 		public int KernelWidth
 		{
@@ -173,7 +172,7 @@ namespace FontStashSharp
 		}
 
 		/// <summary>
-		/// Gets or sets the kernel height for glyph effects (blur or stroke).
+		/// Gets or sets the height of the kernel used when applying glyph effects.
 		/// </summary>
 		public int KernelHeight
 		{
@@ -249,6 +248,16 @@ namespace FontStashSharp
 		}
 
 		/// <summary>
+		/// Gets or sets the mode used to rasterize glyph bitmaps.
+		/// </summary>
+		public FontRasterizationMode FontRasterizationMode { get; set; }
+
+		/// <summary>
+		/// Gets or sets the fixed font size used for SDF (Signed Distance Field) rendering.
+		/// </summary>
+		public float? FixedSDFFontSize { get; set; }
+
+		/// <summary>
 		/// Initializes a new instance of the FontSystemSettings class with default values.
 		/// </summary>
 		public FontSystemSettings()
@@ -264,6 +273,8 @@ namespace FontStashSharp
 			TextShaper = FontSystemDefaults.TextShaper;
 			FontLoader = FontSystemDefaults.FontLoader;
 			ShapedTextCacheSize = FontSystemDefaults.ShapedTextCacheSize;
+			FontRasterizationMode = FontSystemDefaults.FontRasterizationMode;
+			FixedSDFFontSize = FontSystemDefaults.FixedSDFFontSize;
 		}
 
 		/// <summary>
@@ -287,7 +298,9 @@ namespace FontStashSharp
 				ExistingTextureUsedSpace = ExistingTextureUsedSpace,
 				FontLoader = FontLoader,
 				TextShaper = TextShaper,
-				ShapedTextCacheSize = ShapedTextCacheSize
+				ShapedTextCacheSize = ShapedTextCacheSize,
+				FontRasterizationMode = FontRasterizationMode,
+				FixedSDFFontSize = FixedSDFFontSize
 			};
 		}
 	}

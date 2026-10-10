@@ -1,4 +1,4 @@
-﻿#if MONOGAME || FNA || XNA
+﻿#if MONOGAME || FNA || KNI || XNA
 using Microsoft.Xna.Framework;
 #elif STRIDE
 using Stride.Core.Mathematics;
@@ -17,9 +17,7 @@ namespace FontStashSharp.RichText
 	{
 		private readonly int _width;
 
-		/// <summary>
-		/// Gets the size of this space chunk.
-		/// </summary>
+		/// <inheritdoc/>
 		public override Point Size => new Point(_width, 0);
 
 		/// <summary>
@@ -31,13 +29,8 @@ namespace FontStashSharp.RichText
 			_width = width;
 		}
 
-		/// <summary>
-		/// Draws this space chunk (which is invisible).
-		/// </summary>
-		/// <param name="context">The rendering context.</param>
-		/// <param name="position">The position to draw at.</param>
-		/// <param name="color">The color to apply (ignored for spaces).</param>
-		public override void Draw(FSRenderContext context, Vector2 position, Color color)
+		/// <inheritdoc/>
+		public override void Draw(IFSRenderContext context, Vector2 position, Color color)
 		{
 		}
 	}

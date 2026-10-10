@@ -1,12 +1,11 @@
 ﻿using Cyotek.Drawing.BitmapFont;
-using FontStashSharp.Interfaces;
 using StbImageSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-#if MONOGAME || FNA || XNA
+#if MONOGAME || FNA || KNI || XNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 #elif STRIDE
@@ -15,6 +14,7 @@ using Stride.Graphics;
 using Texture2D = Stride.Graphics.Texture;
 #else
 using System.Drawing;
+using FontStashSharp.Interfaces;
 using Texture2D = System.Object;
 using Color = FontStashSharp.FSColor;
 #endif
@@ -64,8 +64,9 @@ namespace FontStashSharp
 	/// <summary>
 	/// A sprite font with static, pre-rendered glyphs loaded from bitmap font files.
 	/// </summary>
-	public partial class StaticSpriteFont : SpriteFontBase
+	public partial class StaticSpriteFont : RealFontBase
 	{
+		private readonly Point _textureSize;
 		private readonly Int32Map<int> _kernings = new Int32Map<int>();
 
 		/// <summary>
@@ -83,13 +84,24 @@ namespace FontStashSharp
 		/// </summary>
 		public bool UseKernings { get; set; } = true;
 
+		/// <inheritdoc/>
+		public override FontSystem FontSystem => null;
+
+		/// <inheritdoc/>
+		public override FontRasterizationMode FontRasterizationMode => FontRasterizationMode.Standard;
+
+		/// <inheritdoc/>
+		public override Point TextureSize => _textureSize;
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="StaticSpriteFont"/> class.
 		/// </summary>
 		/// <param name="fontSize">The font size in pixels.</param>
 		/// <param name="lineHeight">The line height in pixels.</param>
-		public StaticSpriteFont(int fontSize, int lineHeight) : base(fontSize, lineHeight)
+		/// <param name="textureSize">The size of the texture that contains the font glyphs.</param>
+		public StaticSpriteFont(int fontSize, int lineHeight, Point textureSize) : base(fontSize, lineHeight)
 		{
+			_textureSize = textureSize;
 		}
 
 		private FontGlyph InternalGetGlyph(int codepoint)
@@ -100,25 +112,11 @@ namespace FontStashSharp
 			return result;
 		}
 
-#if MONOGAME || FNA || XNA || STRIDE
-		/// <summary>
-		/// Gets a glyph for the specified codepoint with optional effects applied.
-		/// </summary>
-		/// <param name="device">The graphics device</param>
-		/// <param name="codepoint">The Unicode codepoint for the character</param>
-		/// <param name="effect">The font system effect to apply</param>
-		/// <param name="effectAmount">The amount of the effect to apply</param>
-		/// <returns>The font glyph for the specified codepoint</returns>
+#if MONOGAME || FNA || KNI || XNA || STRIDE
+		/// <inheritdoc/>
 		protected internal override FontGlyph GetGlyph(GraphicsDevice device, int codepoint, FontSystemEffect effect, int effectAmount)
 #else
-		/// <summary>
-		/// Gets a glyph for the specified codepoint with optional effects applied.
-		/// </summary>
-		/// <param name="device">The texture manager</param>
-		/// <param name="codepoint">The Unicode codepoint for the character</param>
-		/// <param name="effect">The font system effect to apply</param>
-		/// <param name="effectAmount">The amount of the effect to apply</param>
-		/// <returns>The font glyph for the specified codepoint</returns>
+		/// <inheritdoc/>
 		protected internal override FontGlyph GetGlyph(ITexture2DManager device, int codepoint, FontSystemEffect effect, int effectAmount)
 #endif
 		{
@@ -205,7 +203,7 @@ namespace FontStashSharp
 
 		private static StaticSpriteFont FromBMFont(BitmapFont bmFont, Func<string, TextureWithOffset> textureGetter)
 		{
-			var result = new StaticSpriteFont(bmFont.LineHeight, bmFont.LineHeight);
+			var result = new StaticSpriteFont(bmFont.LineHeight, bmFont.LineHeight, new Point(bmFont.TextureSize.Width, bmFont.TextureSize.Height));
 
 			var characters = bmFont.Characters.Values.OrderBy(c => c.Char);
 
@@ -247,7 +245,7 @@ namespace FontStashSharp
 			return FromBMFont(bmFont, textureGetter);
 		}
 
-#if MONOGAME || FNA || XNA || STRIDE
+#if MONOGAME || FNA || KNI || XNA || STRIDE
 		/// <summary>
 		/// Creates a static sprite font from bitmap font data with texture loading from streams.
 		/// </summary>
@@ -299,7 +297,7 @@ namespace FontStashSharp
 						}
 					}
 
-#if MONOGAME || FNA || XNA || STRIDE
+#if MONOGAME || FNA || KNI || XNA || STRIDE
 					var texture = Texture2DManager.CreateTexture(device, image.Width, image.Height);
 					Texture2DManager.SetTextureData(texture, new Rectangle(0, 0, image.Width, image.Height), image.Data);
 #else

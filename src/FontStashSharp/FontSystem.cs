@@ -3,9 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using FontStashSharp.Rasterizers.StbTrueTypeSharp;
-using System.Runtime.InteropServices;
 
-#if MONOGAME || FNA || XNA
+#if MONOGAME || FNA || KNI || XNA
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 #elif STRIDE
@@ -30,8 +29,19 @@ namespace FontStashSharp
 		/// </summary>
 		public const int GlyphPad = 2;
 
+		private class RealFontInfo
+		{
+			public DynamicSpriteFont RealFont { get; }
+			public Int32Map<ScaledSpriteFont> ScaledFonts { get; } = new Int32Map<ScaledSpriteFont>();
+
+			public RealFontInfo(DynamicSpriteFont realFont)
+			{
+				RealFont = realFont ?? throw new ArgumentNullException(nameof(realFont));
+			}
+		}
+
 		private readonly List<IFontSource> _fontSources = new List<IFontSource>();
-		private readonly Int32Map<DynamicSpriteFont> _fonts = new Int32Map<DynamicSpriteFont>();
+		private readonly Int32Map<RealFontInfo> _realFonts = new Int32Map<RealFontInfo>();
 		private readonly FontSystemSettings _settings;
 
 		private FontAtlas _currentAtlas;
@@ -65,17 +75,17 @@ namespace FontStashSharp
 		public GlyphRenderer GlyphRenderer => _settings.GlyphRenderer;
 
 		/// <summary>
-		/// Gets the font resolution scaling factor.
+		/// Gets the resolution factor used to scale font glyphs.
 		/// </summary>
-		public float FontResolutionFactor => _settings.FontResolutionFactor;
+		public float? FontResolutionFactor => _settings.FontResolutionFactor;
 
 		/// <summary>
-		/// Gets the kernel width for glyph rendering.
+		/// Gets the width of the kernel used when applying glyph effects.
 		/// </summary>
 		public int KernelWidth => _settings.KernelWidth;
 
 		/// <summary>
-		/// Gets the kernel height for glyph rendering.
+		/// Gets the height of the kernel used when applying glyph effects.
 		/// </summary>
 		public int KernelHeight => _settings.KernelHeight;
 
@@ -108,6 +118,16 @@ namespace FontStashSharp
 		/// Gets the maximum size of the shaped text cache.
 		/// </summary>
 		public int ShapedTextCacheSize => _settings.ShapedTextCacheSize;
+
+		/// <summary>
+		/// Gets the mode used to rasterize glyph bitmaps.
+		/// </summary>
+		public FontRasterizationMode FontRasterizationMode => _settings.FontRasterizationMode;
+
+		/// <summary>
+		/// Gets the fixed font size used for SDF (Signed Distance Field) rendering.
+		/// </summary>
+		public float? FixedSDFFontSize => _settings.FixedSDFFontSize;
 
 		/// <summary>
 		/// Gets the list of font sources loaded in this system.
@@ -202,7 +222,7 @@ namespace FontStashSharp
 			}
 
 			SetFontAtlas(null);
-			_fonts.Clear();
+			_realFonts.Clear();
 		}
 
 		/// <summary>
@@ -219,9 +239,9 @@ namespace FontStashSharp
 				// Create HarfBuzz font
 				_textShaperFonts.Add(_settings.TextShaper.RegisterTtfFont(data));
 
-				foreach (var kvp in _fonts)
+				foreach (var kvp in _realFonts)
 				{
-					kvp.Value.ClearShapedTextCache();
+					kvp.Value.RealFont.ClearShapedTextCache();
 				}
 			}
 		}
@@ -235,18 +255,14 @@ namespace FontStashSharp
 			AddFont(stream.ToByteArray());
 		}
 
-		/// <summary>
-		/// Gets or creates a dynamic sprite font with the specified size.
-		/// </summary>
-		/// <param name="fontSize">The font size in points.</param>
-		/// <returns>A <see cref="DynamicSpriteFont"/> for the specified size.</returns>
-		public DynamicSpriteFont GetFont(float fontSize)
+		private RealFontInfo GetRealFont(float fontSize)
 		{
 			var intSize = fontSize.FloatAsInt();
-			DynamicSpriteFont result;
-			if (_fonts.TryGetValue(intSize, out result))
+
+			RealFontInfo info;
+			if (_realFonts.TryGetValue(intSize, out info))
 			{
-				return result;
+				return info;
 			}
 
 			if (_fontSources.Count == 0)
@@ -259,9 +275,66 @@ namespace FontStashSharp
 			int ascent, descent, lineHeight;
 			fontSource.GetMetricsForSize(fontSize, out ascent, out descent, out lineHeight);
 
-			result = new DynamicSpriteFont(this, fontSize, lineHeight);
-			_fonts[intSize] = result;
-			return result;
+			var realFont = new DynamicSpriteFont(this, fontSize, lineHeight);
+			info = new RealFontInfo(realFont);
+			_realFonts[intSize] = info;
+
+			return info;
+		}
+
+		private SpriteFontBase GetStandardFont(float fontSize)
+		{
+			if (FontResolutionFactor == null)
+			{
+				return GetRealFont(fontSize).RealFont;
+			}
+
+			ScaledSpriteFont scaledFont;
+
+			var realFont = GetRealFont(fontSize * FontResolutionFactor.Value);
+			var intSize = fontSize.FloatAsInt();
+			if (!realFont.ScaledFonts.TryGetValue(intSize, out scaledFont))
+			{
+				scaledFont = new ScaledSpriteFont(realFont.RealFont, 1.0f / FontResolutionFactor.Value, fontSize);
+				realFont.ScaledFonts[intSize] = scaledFont;
+			}
+
+			return scaledFont;
+		}
+
+		private SpriteFontBase GetSDFFont(float fontSize)
+		{
+			if (FixedSDFFontSize == null)
+			{
+				return GetRealFont(fontSize).RealFont;
+			}
+
+			ScaledSpriteFont scaledFont;
+
+			var realFont = GetRealFont(FixedSDFFontSize.Value);
+			var intSize = fontSize.FloatAsInt();
+			if (!realFont.ScaledFonts.TryGetValue(intSize, out scaledFont))
+			{
+				scaledFont = new ScaledSpriteFont(realFont.RealFont, fontSize / FixedSDFFontSize.Value, fontSize);
+				realFont.ScaledFonts[intSize] = scaledFont;
+			}
+
+			return scaledFont;
+		}
+
+		/// <summary>
+		/// Gets a font to use for rendering text at the specified size.
+		/// </summary>
+		/// <param name="fontSize">The size (in pixels) of the font to retrieve.</param>
+		/// <returns>The font to use for the given size.</returns>
+		public SpriteFontBase GetFont(float fontSize)
+		{
+			if (FontRasterizationMode == FontRasterizationMode.SDF)
+			{
+				return GetSDFFont(fontSize);
+			}
+
+			return GetStandardFont(fontSize);
 		}
 
 		/// <summary>
@@ -283,7 +356,7 @@ namespace FontStashSharp
 		public void Reset()
 		{
 			Atlases.Clear();
-			_fonts.Clear();
+			_realFonts.Clear();
 			SetFontAtlas(null);
 		}
 
@@ -318,7 +391,7 @@ namespace FontStashSharp
 			return _settings.TextShaper.Shape(text, fontSize, this);
 		}
 
-#if MONOGAME || FNA || XNA || STRIDE
+#if MONOGAME || FNA || KNI || XNA || STRIDE
 		private FontAtlas CreateFontAtlas(GraphicsDevice device, int textureWidth, int textureHeight)
 #else
 		private FontAtlas CreateFontAtlas(ITexture2DManager device, int textureWidth, int textureHeight)
@@ -346,7 +419,7 @@ namespace FontStashSharp
 			return fontAtlas;
 		}
 
-#if MONOGAME || FNA || XNA || STRIDE
+#if MONOGAME || FNA || KNI || XNA || STRIDE
 		internal void RenderGlyphOnAtlas(GraphicsDevice device, DynamicFontGlyph glyph)
 #else
 		internal void RenderGlyphOnAtlas(ITexture2DManager device, DynamicFontGlyph glyph)
@@ -356,7 +429,7 @@ namespace FontStashSharp
 
 			if (ExistingTexture != null)
 			{
-#if MONOGAME || FNA || XNA || STRIDE
+#if MONOGAME || FNA || KNI || XNA || STRIDE
 				textureSize = new Point(ExistingTexture.Width, ExistingTexture.Height);
 #else
 				textureSize = device.GetTextureSize(ExistingTexture);

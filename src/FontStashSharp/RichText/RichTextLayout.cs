@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using FontStashSharp.Interfaces;
 
-#if MONOGAME || FNA || XNA
+#if MONOGAME || FNA || KNI || XNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 #elif STRIDE
@@ -505,7 +506,35 @@ namespace FontStashSharp.RichText
 			Draw(position, color, rotation, origin, scale, layerDepth, horizontalAlignment);
 		}
 
-#if MONOGAME || FNA || XNA || STRIDE
+		/// <summary>
+		/// Draws the text layout using the specified SDF text renderer.
+		/// </summary>
+		/// <param name="renderer">The SDF text renderer to use</param>
+		/// <param name="position">The position to draw at</param>
+		/// <param name="color">The color to render the text in</param>
+		/// <param name="rotation">The rotation in radians</param>
+		/// <param name="origin">The center of rotation</param>
+		/// <param name="scale">The scale factors, or null for default (1, 1)</param>
+		/// <param name="layerDepth">The layer depth for drawing</param>
+		/// <param name="horizontalAlignment">The horizontal alignment of the text</param>
+		/// <exception cref="InvalidOperationException">
+		/// Thrown when <see cref="Font"/> is not null and its <see cref="SpriteFontBase.FontRasterizationMode"/>
+		/// is not <see cref="FontRasterizationMode.SDF"/>.
+		/// </exception>
+		public void Draw(ISDFTextRenderer renderer, Vector2 position, Color color,
+			float rotation = 0, Vector2 origin = default(Vector2), Vector2? scale = null,
+			float layerDepth = 0.0f, TextHorizontalAlignment horizontalAlignment = TextHorizontalAlignment.Left)
+		{
+			if (Font != null && Font.FontRasterizationMode != FontRasterizationMode.SDF)
+			{
+				throw new InvalidOperationException("The font must use FontRasterizationMode.SDF to be drawn with an ISDFTextRenderer.");
+			}
+
+			_renderContext.SetRenderer(renderer);
+			Draw(position, color, rotation, origin, scale, layerDepth, horizontalAlignment);
+		}
+
+#if MONOGAME || FNA || KNI || XNA || STRIDE
 
 		/// <summary>
 		/// Draws the text layout using the specified sprite batch.

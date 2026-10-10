@@ -1,12 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>$(AppTargetFramework)</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PublishAot>true</PublishAot>
   </PropertyGroup>
   
   <ItemGroup>
     <PackageReference Include="FontStashSharp.Rasterizers.FreeType" Version="$(FontStashSharpBaseVersion)" />
+    <PackageReference Include="FontStashSharp.Rasterizers.SharpAstro" Version="$(FontStashSharpBaseVersion)" />
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="$(AppMonoGameVersion)" />
   </ItemGroup>
   

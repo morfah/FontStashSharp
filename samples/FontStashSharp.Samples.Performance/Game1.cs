@@ -19,32 +19,21 @@ namespace FontStashSharp.Samples
 		private readonly GraphicsDeviceManager _graphics;
 		private SpriteFont _oldFont;
 		private StaticSpriteFont _fssStaticFont;
-		private DynamicSpriteFont _fssFont;
-		private DynamicSpriteFont _fssShapedFont;
+		private SpriteFontBase _fssFont;
+		private	SpriteFontBase _fssShapedFont;
+		private SpriteFontBase _fssSDFFont;
 		private readonly Counter _oldCounter = new Counter();
 		private readonly Counter _fssStaticCounter = new Counter();
 		private readonly Counter _fssFontCounter = new Counter();
 		private readonly Counter _fssShapedCounter = new Counter();
-
-		public static Game1 Instance { get; private set; }
-
+		private readonly Counter _fssSDFCounter = new Counter();
+		private readonly Counter _fssSDFSupersamplingCounter = new Counter();
+		
 		private SpriteBatch _spriteBatch;
-
-		public static string ExecutingAssemblyDirectory
-		{
-			get
-			{
-				string codeBase = Assembly.GetExecutingAssembly().Location;
-				UriBuilder uri = new UriBuilder(codeBase);
-				string path = Uri.UnescapeDataString(uri.Path);
-				return Path.GetDirectoryName(path);
-			}
-		}
+		private SDFTextBatch _sdfBatch;
 
 		public Game1()
 		{
-			Instance = this;
-
 			_graphics = new GraphicsDeviceManager(this)
 			{
 				PreferredBackBufferWidth = 1200,
@@ -66,16 +55,19 @@ namespace FontStashSharp.Samples
 
 			// Create a new SpriteBatch, which can be used to draw textures.
 			_spriteBatch = new SpriteBatch(GraphicsDevice);
+			_sdfBatch = new SDFTextBatch(GraphicsDevice);
+
+			var folder = AppDomain.CurrentDomain.BaseDirectory;
 
 			// MG
-			var assetManager = AssetManager.CreateFileAssetManager(Path.Combine(ExecutingAssemblyDirectory));
+			var assetManager = AssetManager.CreateFileAssetManager(folder);
 			_oldFont = assetManager.LoadSpriteFont(GraphicsDevice, "Fonts/debugFont.fnt");
 
 			// Static
-			_fssStaticFont = StaticSpriteFont.FromBMFont(File.ReadAllText(Path.Combine(ExecutingAssemblyDirectory, @"Fonts/debugFont.fnt")),
+			_fssStaticFont = StaticSpriteFont.FromBMFont(File.ReadAllText(Path.Combine(folder, @"Fonts/debugFont.fnt")),
 				s =>
 				{
-					var bytes = File.ReadAllBytes(Path.Combine(ExecutingAssemblyDirectory, $"Fonts/{s}"));
+					var bytes = File.ReadAllBytes(Path.Combine(folder, $"Fonts/{s}"));
 					return new MemoryStream(bytes);
 				},
 				GraphicsDevice);
@@ -84,7 +76,7 @@ namespace FontStashSharp.Samples
 
 			// Simple
 			var fontSystem = new FontSystem();
-			fontSystem.AddFont(File.ReadAllBytes(Path.Combine(ExecutingAssemblyDirectory, @"Fonts/DroidSans.ttf")));
+			fontSystem.AddFont(File.ReadAllBytes(Path.Combine(folder, @"Fonts/DroidSans.ttf")));
 
 			_fssFont = fontSystem.GetFont(24);
 
@@ -93,9 +85,19 @@ namespace FontStashSharp.Samples
 				TextShaper = new HarfBuzzTextShaper()
 			};
 			var fontSystemShaped = new FontSystem(shapedSettings);
-			fontSystemShaped.AddFont(File.ReadAllBytes(Path.Combine(ExecutingAssemblyDirectory, @"Fonts/DroidSans.ttf")));
+			fontSystemShaped.AddFont(File.ReadAllBytes(Path.Combine(folder, @"Fonts/DroidSans.ttf")));
 
 			_fssShapedFont = fontSystemShaped.GetFont(24);
+
+			var sdfSettings = new FontSystemSettings
+			{
+				FontRasterizationMode = FontRasterizationMode.SDF,
+				FixedSDFFontSize = 64
+			};
+			var fontSystemSDF = new FontSystem(sdfSettings);
+			fontSystemSDF.AddFont(File.ReadAllBytes(Path.Combine(folder, @"Fonts/DroidSans.ttf")));
+
+			_fssSDFFont = fontSystemSDF.GetFont(24);
 
 			GC.Collect();
 		}
@@ -154,6 +156,36 @@ namespace FontStashSharp.Samples
 			_fssShapedCounter.Stop();
 
 			_spriteBatch.DrawString(_oldFont, $"Shaped FontStashSharp: {_fssShapedCounter.Last} ms/{_fssShapedCounter.Total / _oldCounter.Total}x", new Vector2(0, 224), Color.White);
+
+			// FSS SDF
+			_sdfBatch.Supersampling = false;
+			_sdfBatch.Begin();
+			
+			_fssSDFCounter.Start();
+			for (var i = 0; i < Count; ++i)
+			{
+				_sdfBatch.DrawString(_fssSDFFont, Text, new Vector2(0, 256), Color.White);
+			}
+			_fssSDFCounter.Stop();
+
+			_sdfBatch.End();
+
+			_spriteBatch.DrawString(_oldFont, $"SDF FontStashSharp: {_fssSDFCounter.Last} ms/{_fssSDFCounter.Total / _oldCounter.Total}x", new Vector2(0, 288), Color.White);
+
+			_sdfBatch.Supersampling = true;
+			_sdfBatch.Begin();
+
+			_fssSDFCounter.Start();
+			for (var i = 0; i < Count; ++i)
+			{
+				_sdfBatch.DrawString(_fssSDFFont, Text, new Vector2(0, 320), Color.White);
+			}
+			_fssSDFCounter.Stop();
+
+			_sdfBatch.End();
+
+			_spriteBatch.DrawString(_oldFont, $"SDF Supersampled FontStashSharp: {_fssSDFCounter.Last} ms/{_fssSDFCounter.Total / _oldCounter.Total}x", new Vector2(0, 352), Color.White);
+
 
 			_spriteBatch.End();
 

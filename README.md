@@ -7,18 +7,16 @@ FontStashSharp is a text rendering library. It has the following features:
 * Many supported frameworks: MonoGame, FNA, Stride, Kni, Xna and generic C# engines
 * Runtime font loading from ttfs and AngelCode BMFonts
 * Text effects: blurry text, stroked text, underline and strikethrough
+* Two techniques for dealing with the text scaling issues: Supersampling and SDF
 * Integrated rich text engine
 * Optional HarfBuzz text shaping support
+* fss-tool: desktop GUI tool for previewing FontStashSharp text rendering
 
 ## Documentation
 https://fontstashsharp.github.io/FontStashSharp
 
 ## Support
 [Discord](https://discord.gg/ZeHxhCY)
-
-## Building From Source Code
-1. Clone this repo.
-2. Open a solution from the "build" folder.
 
 ## Sponsor
 If this project is useful for you, you can support development:
@@ -40,6 +38,9 @@ Blurry Text:
 Stroked Text:
 ![](/screenshots/stroked.png)
 
+fss-tool:
+<img width="1202" height="832" alt="image" src="https://github.com/user-attachments/assets/9e49d4ce-c574-4c21-9e4b-519f938c0582" />
+
 ## Credits
 * [fontstash](https://github.com/memononen/fontstash)
 * [stb](https://github.com/nothings/stb)
@@ -49,5 +50,7 @@ Stroked Text:
 * [Stride](https://www.stride3d.net/)
 * [Kni](https://github.com/kniEngine/kni)
 * [FreeTypeSharp](https://github.com/ryancheung/FreeTypeSharp)
+* [SharpAstro.Fonts](https://github.com/SharpAstro/Fonts.Lib)
 * [TrippyGL](https://github.com/SilkCommunity/TrippyGL)
 * [HarfBuzzSharp](https://www.nuget.org/packages/HarfBuzzSharp/)
+* [U3D](https://u3d.io/)

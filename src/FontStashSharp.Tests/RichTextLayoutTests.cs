@@ -69,6 +69,82 @@ namespace FontStashSharp.Tests
 		}
 
 		/// <summary>
+		/// Tests that the '/ds' command accepts an optional color parameter that overrides RichTextDefaults.
+		/// </summary>
+		[Fact]
+		public void ShadowCommandColorParamTest()
+		{
+			var fontSystem = TestsEnvironment.DefaultFontSystem;
+
+			var richTextLayout = new RichTextLayout
+			{
+				Text = "/ds[Red]Shadow /ddsPlain",
+				Font = fontSystem.GetFont(32)
+			};
+
+			Assert.Single(richTextLayout.Lines);
+			var chunks = richTextLayout.Lines[0].Chunks;
+			Assert.Equal(2, chunks.Count);
+
+			var textChunk = (TextChunk)chunks[0];
+			Assert.Equal(SDFTextEffect.Shadow, textChunk.SDFEffect);
+			Assert.Equal(Color.Red, textChunk.SDFEffectColor);
+
+			textChunk = (TextChunk)chunks[1];
+			Assert.Equal(SDFTextEffect.None, textChunk.SDFEffect);
+		}
+
+		/// <summary>
+		/// Tests that the '/dt' command accepts an optional color parameter that overrides RichTextDefaults.
+		/// </summary>
+		[Fact]
+		public void StrokeCommandColorParamTest()
+		{
+			var fontSystem = TestsEnvironment.DefaultFontSystem;
+
+			var richTextLayout = new RichTextLayout
+			{
+				Text = "/dt[#00ff00]Stroke /ddPlain",
+				Font = fontSystem.GetFont(32)
+			};
+
+			Assert.Single(richTextLayout.Lines);
+			var chunks = richTextLayout.Lines[0].Chunks;
+
+			var textChunk = (TextChunk)chunks[0];
+			Assert.Equal(SDFTextEffect.Stroke, textChunk.SDFEffect);
+			Assert.Equal(new Color(0, 255, 0, 255), textChunk.SDFEffectColor);
+		}
+
+		/// <summary>
+		/// Tests that the effect color param persists until '/dd' and that a param-less command falls back to RichTextDefaults.
+		/// </summary>
+		[Fact]
+		public void SDFEffectColorPersistenceTest()
+		{
+			var fontSystem = TestsEnvironment.DefaultFontSystem;
+
+			var richTextLayout = new RichTextLayout
+			{
+				Text = "/ds[Green]First /dsSecond /ddPlain /dsThird",
+				Font = fontSystem.GetFont(32)
+			};
+
+			Assert.Single(richTextLayout.Lines);
+			var chunks = richTextLayout.Lines[0].Chunks;
+			Assert.Equal(4, chunks.Count);
+
+			// First chunk uses the explicitly set color
+			Assert.Equal(Color.Green, ((TextChunk)chunks[0]).SDFEffectColor);
+
+			// Second chunk keeps the color set by the previous '/ds[Green]'
+			Assert.Equal(Color.Green, ((TextChunk)chunks[1]).SDFEffectColor);
+
+			// After '/dd', the color falls back to RichTextDefaults
+			Assert.Equal(RichTextDefaults.SDFShadowColor, ((TextChunk)chunks[3]).SDFEffectColor);
+		}
+
+		/// <summary>
 		/// Tests text wrapping behavior when rich text layout width is constrained.
 		/// </summary>
 		[Fact]

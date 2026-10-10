@@ -1,4 +1,4 @@
-﻿#if MONOGAME || FNA || XNA
+﻿#if MONOGAME || FNA || KNI || XNA
 using Microsoft.Xna.Framework;
 #elif STRIDE
 using Stride.Core.Mathematics;
@@ -50,6 +50,6 @@ namespace FontStashSharp.RichText
 		/// <param name="context">The rendering context.</param>
 		/// <param name="position">The position to draw at.</param>
 		/// <param name="color">The color to apply.</param>
-		public abstract void Draw(FSRenderContext context, Vector2 position, Color color);
+		public abstract void Draw(IFSRenderContext context, Vector2 position, Color color);
 	}
 }

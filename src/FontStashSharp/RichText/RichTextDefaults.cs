@@ -1,5 +1,14 @@
 ﻿using System;
 
+#if MONOGAME || FNA || KNI || XNA
+using Microsoft.Xna.Framework;
+#elif STRIDE
+using Stride.Core.Mathematics;
+#else
+using System.Numerics;
+using Color = FontStashSharp.FSColor;
+#endif
+
 namespace FontStashSharp.RichText
 {
 	/// <summary>
@@ -15,5 +24,25 @@ namespace FontStashSharp.RichText
 		/// Gets or sets the function used to resolve image names to renderable objects.
 		/// </summary>
 		public static Func<string, IRenderable> ImageResolver { get; set; }
+
+		/// <summary>
+		/// Gets or sets the default color used for SDF shadow effects.
+		/// </summary>
+		public static Color SDFShadowColor { get; set; } = Color.Black;
+
+		/// <summary>
+		/// Gets or sets the default offset used for SDF shadow effects.
+		/// </summary>
+		public static Vector2 SDFShadowOffset { get; set; } = new Vector2(2, 2);
+
+		/// <summary>
+		/// Gets or sets the default color used for SDF stroke effects.
+		/// </summary>
+		public static Color SDFStrokeColor { get; set; } = Color.Black;
+
+		/// <summary>
+		/// Gets or sets the default thickness used for SDF stroke effects.
+		/// </summary>
+		public static float SDFStrokeThickness { get; set; } = 0.2f;
 	}
 }

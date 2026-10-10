@@ -1,7 +1,7 @@
 ﻿using FontStashSharp.Interfaces;
 using System;
 
-#if MONOGAME || FNA || XNA
+#if MONOGAME || FNA || KNI || XNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 #elif STRIDE
@@ -18,8 +18,10 @@ namespace FontStashSharp
 	/// A sprite font that dynamically renders and caches glyphs on-demand into texture atlases.
 	/// Supports multiple font sources, glyph effects, and text shaping.
 	/// </summary>
-	public partial class DynamicSpriteFont : SpriteFontBase
+	public partial class DynamicSpriteFont : RealFontBase
 	{
+		private const int SDFPadding = 2;
+
 		private class GlyphStorage
 		{
 			public Int32Map<DynamicFontGlyph> GlyphsByCodepoints = new Int32Map<DynamicFontGlyph>();
@@ -32,11 +34,16 @@ namespace FontStashSharp
 		private GlyphStorage _lastStorage;
 		private readonly Int32Map<int> Kernings = new Int32Map<int>();
 		private FontMetrics[] IndexedMetrics;
+		private readonly FontSystem _fontSystem;
 
-		/// <summary>
-		/// Gets the font system that manages this dynamic sprite font.
-		/// </summary>
-		public FontSystem FontSystem { get; private set; }
+		/// <inheritdoc/>
+		public override FontSystem FontSystem => _fontSystem;
+
+		/// <inheritdoc/>
+		public override FontRasterizationMode FontRasterizationMode => FontSystem.FontRasterizationMode;
+
+		/// <inheritdoc/>
+		public override Point TextureSize => new Point(_fontSystem.TextureWidth, _fontSystem.TextureHeight);
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DynamicSpriteFont"/> class.
@@ -51,8 +58,7 @@ namespace FontStashSharp
 				throw new ArgumentNullException(nameof(system));
 			}
 
-			FontSystem = system;
-			RenderFontSizeMultiplicator = FontSystem.FontResolutionFactor;
+			_fontSystem = system;
 
 			_shapedTextCache = new ShapedTextCache(system.ShapedTextCacheSize);
 		}
@@ -114,26 +120,38 @@ namespace FontStashSharp
 				return null;
 			}
 
-			var fontSize = FontSize * FontSystem.FontResolutionFactor;
 			var font = FontSystem.FontSources[fontSourceIndex];
 
 			int advance, x0, y0, x1, y1;
-			font.GetGlyphMetrics(g.Value, fontSize, out advance, out x0, out y0, out x1, out y1);
+			font.GetGlyphMetrics(g.Value, FontSize, out advance, out x0, out y0, out x1, out y1);
 
-			var gw = x1 - x0 + effectAmount * 2;
-			var gh = y1 - y0 + effectAmount * 2;
+			var gw = x1 - x0;
+			var gh = y1 - y0;
+
+			if (FontRasterizationMode == FontRasterizationMode.Standard)
+			{
+				gw += effectAmount * 2;
+				gh += effectAmount * 2;
+			}
+			else
+			{
+				gw += SDFPadding * 2;
+				gh += SDFPadding * 2;
+			}
 
 			glyph = new DynamicFontGlyph
 			{
 				Codepoint = codepoint,
 				Id = g.Value,
-				FontSize = fontSize,
+				FontSize = FontSize,
 				FontSourceIndex = fontSourceIndex,
 				RenderOffset = new Point(x0, y0),
 				Size = new Point(gw, gh),
 				XAdvance = advance,
 				Effect = effect,
-				EffectAmount = effectAmount
+				EffectAmount = effectAmount,
+				FontRasterizationMode = FontRasterizationMode,
+				SDFPadding = SDFPadding
 			};
 
 			storage[codepoint] = glyph;
@@ -141,7 +159,7 @@ namespace FontStashSharp
 			return glyph;
 		}
 
-#if MONOGAME || FNA || XNA || STRIDE
+#if MONOGAME || FNA || KNI || XNA || STRIDE
 		private DynamicFontGlyph GetGlyphByCodepointInternal(GraphicsDevice device, int codepoint, FontSystemEffect effect, int effectAmount)
 #else
 		private DynamicFontGlyph GetGlyphByCodepointInternal(ITexture2DManager device, int codepoint, FontSystemEffect effect, int effectAmount)
@@ -161,7 +179,7 @@ namespace FontStashSharp
 			return glyph;
 		}
 
-#if MONOGAME || FNA || XNA || STRIDE
+#if MONOGAME || FNA || KNI || XNA || STRIDE
 		private DynamicFontGlyph GetGlyphByCodepoint(GraphicsDevice device, int codepoint, FontSystemEffect effect, int effectAmount)
 #else
 		private DynamicFontGlyph GetGlyphByCodepoint(ITexture2DManager device, int codepoint, FontSystemEffect effect, int effectAmount)
@@ -176,7 +194,7 @@ namespace FontStashSharp
 			return result;
 		}
 
-#if MONOGAME || FNA || XNA || STRIDE
+#if MONOGAME || FNA || KNI || XNA || STRIDE
 		/// <summary>
 		/// Gets a glyph for the specified codepoint with optional effects applied.
 		/// </summary>
@@ -209,7 +227,7 @@ namespace FontStashSharp
 				for (var i = 0; i < IndexedMetrics.Length; ++i)
 				{
 					int ascent, descent, lineHeight;
-					FontSystem.FontSources[i].GetMetricsForSize(FontSize * RenderFontSizeMultiplicator, out ascent, out descent, out lineHeight);
+					FontSystem.FontSources[i].GetMetricsForSize(FontSize, out ascent, out descent, out lineHeight);
 
 					IndexedMetrics[i] = new FontMetrics(ascent, descent, lineHeight);
 				}

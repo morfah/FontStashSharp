@@ -5,7 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using FontStashSharp.Interfaces;
 
-#if MONOGAME || FNA || XNA
+#if MONOGAME || FNA || KNI || XNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 #elif STRIDE
@@ -172,7 +172,7 @@ namespace FontStashSharp
 
 		public static Vector2 Transform(this Vector2 v, ref Matrix matrix)
 		{
-#if MONOGAME || FNA || XNA
+#if MONOGAME || FNA || KNI || XNA
 			Vector2 result;
 			Vector2.Transform(ref v, ref matrix, out result);
 			return result;
@@ -201,8 +201,8 @@ namespace FontStashSharp
 			{
 				transformation.M11 = scale.X;
 				transformation.M22 = scale.Y;
-				offsetX = position.X - (origin.X * transformation.M11);
-				offsetY = position.Y - (origin.Y * transformation.M22);
+				offsetX = position.X - origin.X;
+				offsetY = position.Y - origin.Y;
 			}
 			else
 			{
@@ -212,11 +212,11 @@ namespace FontStashSharp
 				transformation.M12 = scale.X * sin;
 				transformation.M21 = scale.Y * -sin;
 				transformation.M22 = scale.Y * cos;
-				offsetX = position.X - (origin.X * transformation.M11) - (origin.Y * transformation.M21);
-				offsetY = position.Y - (origin.X * transformation.M12) - (origin.Y * transformation.M22);
+				offsetX = position.X - (origin.X * cos) + (origin.Y * sin);
+				offsetY = position.Y - (origin.X * sin) - (origin.Y * cos);
 			}
 
-#if MONOGAME || FNA || XNA || STRIDE
+#if MONOGAME || FNA || KNI || XNA || STRIDE
 			transformation.M41 = offsetX;
 			transformation.M42 = offsetY;
 #else
@@ -232,7 +232,7 @@ namespace FontStashSharp
 			ref VertexPositionColorTexture topLeft, ref VertexPositionColorTexture topRight,
 			ref VertexPositionColorTexture bottomLeft, ref VertexPositionColorTexture bottomRight)
 		{
-#if MONOGAME || FNA || XNA || STRIDE
+#if MONOGAME || FNA || KNI || XNA || STRIDE
 			var textureSize = new Point(texture.Width, texture.Height);
 #else
 			var textureSize = renderer.TextureManager.GetTextureSize(texture);

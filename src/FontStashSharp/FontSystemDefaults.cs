@@ -10,7 +10,7 @@ namespace FontStashSharp
 	public static class FontSystemDefaults
 	{
 		private static int _textureWidth = 1024, _textureHeight = 1024;
-		private static float _fontResolutionFactor = 1.0f;
+		private static float? _fontResolutionFactor = null;
 		private static int _kernelWidth = 0, _kernelHeight = 0;
 		private static int _shapedTextCacheSize = 100;
 
@@ -79,16 +79,16 @@ namespace FontStashSharp
 		}
 
 		/// <summary>
-		/// Gets or sets the default font resolution factor for scaling glyphs.
+		/// Gets or sets the default resolution factor used to scale font glyphs.
 		/// </summary>
-		public static float FontResolutionFactor
+		public static float? FontResolutionFactor
 		{
 			get => _fontResolutionFactor;
 			set
 			{
-				if (value < 0)
+				if (value.HasValue && value < 1)
 				{
-					throw new ArgumentOutOfRangeException(nameof(value), value, "This cannot be smaller than 0");
+					throw new ArgumentOutOfRangeException(nameof(value), value, "This cannot be smaller than 1");
 				}
 
 				_fontResolutionFactor = value;
@@ -96,7 +96,7 @@ namespace FontStashSharp
 		}
 
 		/// <summary>
-		/// Gets or sets the default kernel width for glyph effects.
+		/// Gets or sets the default width of the kernel used when applying glyph effects.
 		/// </summary>
 		public static int KernelWidth
 		{
@@ -114,7 +114,7 @@ namespace FontStashSharp
 		}
 
 		/// <summary>
-		/// Gets or sets the default kernel height for glyph effects.
+		/// Gets or sets the default height of the kernel used when applying glyph effects.
 		/// </summary>
 		public static int KernelHeight
 		{
@@ -185,5 +185,15 @@ namespace FontStashSharp
 				_shapedTextCacheSize = value;
 			}
 		}
+
+		/// <summary>
+		/// Gets or sets the mode used to rasterize glyph bitmaps.
+		/// </summary>
+		public static FontRasterizationMode FontRasterizationMode { get; set; }
+
+		/// <summary>
+		/// Gets or sets the default fixed font size used for SDF (Signed Distance Field) rendering.
+		/// </summary>
+		public static float? FixedSDFFontSize { get; set; } = 64.0f;
 	}
 }

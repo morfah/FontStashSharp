@@ -1,6 +1,6 @@
 ﻿using System;
 
-#if MONOGAME || FNA || XNA
+#if MONOGAME || FNA || KNI || XNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 #elif STRIDE
@@ -63,7 +63,7 @@ namespace FontStashSharp.RichText
 			Region = region;
 		}
 
-#if MONOGAME || FNA || XNA || STRIDE
+#if MONOGAME || FNA || KNI || XNA || STRIDE
 		/// <summary>
 		/// Initializes a new instance of the TextureFragment class with an entire texture.
 		/// </summary>
@@ -80,7 +80,7 @@ namespace FontStashSharp.RichText
 		/// <param name="context">The rendering context.</param>
 		/// <param name="position">The position to draw at.</param>
 		/// <param name="color">The color to apply (this parameter is ignored; white is always used).</param>
-		public void Draw(FSRenderContext context, Vector2 position, Color color)
+		public void Draw(IFSRenderContext context, Vector2 position, Color color)
 		{
 			context.DrawImage(Texture, Region, position, Scale, Color.White);
 		}
